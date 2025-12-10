@@ -1,16 +1,29 @@
+
 pipeline {
     agent any
 
     environment {
-        NETLIFY_SITE_ID = 'your-site-id-here'          
-        NETLIFY_AUTH_TOKEN = credentials('netlify-token')      }
+        NETLIFY_AUTH_TOKEN = credentials('netlify-token') 
+        NETLIFY_SITE_ID = '1a26b4da-5a94-4e34-9575-1a39797d37f5'
+    }
 
     stages {
-        stage('Deploy to Netlify using Jenkins') {
+        stage('Checkout') {
             steps {
+                git url: 'https://github.com/AhhmedAmrr/ci-cd.git', branch: 'main'
+            }
+        }
+
+        stage('Deploy to Netlify') {
+            steps {
+                echo "Deploying site to Netlify using Docker..."
                 sh '''
-                    echo "Jenkins is deploying your static site to Netlify..."
-                    npx netlify-cli deploy --dir . --prod --site $NETLIFY_SITE_ID --auth $NETLIFY_AUTH_TOKEN --message "Deployed by Jenkins - Task Done ✓"
+                docker run --rm \
+                  -v $PWD:/app \
+                  -w /app \
+                  -e NETLIFY_AUTH_TOKEN=$NETLIFY_AUTH_TOKEN \
+                  -e NETLIFY_SITE_ID=$NETLIFY_SITE_ID \
+                  netlify/cli deploy --dir /app --prod --site $NETLIFY_SITE_ID --auth $NETLIFY_AUTH_TOKEN --message "Deployed by Jenkins"
                 '''
             }
         }
@@ -18,10 +31,10 @@ pipeline {
 
     post {
         success {
-            echo 'Deloy done'
+            echo "Deployment succeeded ✅"
         }
         failure {
-            echo 'error'
+            echo "Deployment failed ❌"
         }
     }
 }
