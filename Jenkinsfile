@@ -6,22 +6,33 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Source Code') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Install Firebase Tools') {
+        stage('Deploy to Firebase Hosting') {
             steps {
-                sh 'npm install -g firebase-tools'
+                sh '''
+                    curl -L https://firebase.tools/bin/linux/x64/firebase -o firebase
+                    chmod +x firebase
+                    ./firebase --version
+                    ./firebase deploy --only hosting --token $FIREBASE_TOKEN --non-interactive
+                '''
             }
         }
+    }
 
-        stage('Deploy to Firebase') {
-            steps {
-                sh "firebase deploy --token $FIREBASE_TOKEN"
-            }
+    post {
+        success {
+            echo 'Deployment to Firebase Hosting succeeded!'
+        }
+        failure {
+            echo 'Deployment failed. Check the logs.'
+        }
+        always {
+            cleanWs()
         }
     }
 }
