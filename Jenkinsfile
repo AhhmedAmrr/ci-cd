@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-         NETLIFY_AUTH_TOKEN = credentials('netlify-token') 
-        NETLIFY_SITE_ID = '1a26b4da-5a94-4e34-9575-1a39797d37f5'
+        FIREBASE_TOKEN = credentials('FIREBASE_TOKEN')
     }
 
     stages {
@@ -13,19 +12,15 @@ pipeline {
             }
         }
 
-        stage('Install Netlify CLI') {
+        stage('Install Firebase Tools') {
             steps {
-                bat 'npm install -g netlify-cli'
+                bat 'npm install -g firebase-tools'
             }
         }
 
-        stage('Deploy to Netlify') {
+        stage('Deploy to Firebase') {
             steps {
-                bat """
-                    netlify deploy --prod ^
-                    --auth "%NETLIFY_TOKEN%" ^
-                    --dir=.
-                """
+                bat "firebase deploy --token $FIREBASE_TOKEN"
             }
         }
     }
